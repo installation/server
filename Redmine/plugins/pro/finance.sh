@@ -23,7 +23,7 @@ preload() {
 
 install() {
 	echo -e "\033[34m###### Installing plugin ######\033[0m"
-	sudo -u $user -H cp $DIR/redmine_finance-1_0_1-pro.zip
+	sudo -u $user -H cp $DIR/redmine_finance-1_0_1-pro.zip .
 	sudo -u $user -H unzip redmine_finance-1_0_1-pro.zip
 	sudo bundle install --without development test sqlite postgresql
 	sudo -u $user -H bundle exec rake redmine:plugins NAME=redmine_finance RAILS_ENV=production

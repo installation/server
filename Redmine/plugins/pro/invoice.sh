@@ -23,7 +23,7 @@ preload() {
 
 install() {
 	echo -e "\033[34m###### Installing plugin ######\033[0m"
-	sudo -u $user -H cp $DIR/redmine_contacts_invoices-2_1_0-pro.zip
+	sudo -u $user -H cp $DIR/redmine_contacts_invoices-2_1_0-pro.zip .
 	sudo -u $user -H unzip redmine_contacts_invoices-2_1_0-pro.zip
 	sudo bundle install --without development test sqlite postgresql
 	sudo -u $user -H bundle exec rake redmine:plugins NAME=redmine_contacts_invoices RAILS_ENV=production
