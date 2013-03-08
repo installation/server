@@ -22,8 +22,8 @@ preload() {
 install() {
 	echo -e "\033[34m###### Installing Owncloud ######\033[0m"
 	echo -e "\033[34mInstalling dependencies\033[0m"
-	sudo apt-get install apache2 php5 php5-gd php-xml-parser php5-intl
-	sudo apt-get install php5-sqlite php5-mysql smbclient curl libcurl3 php5-curl
+	sudo apt-get install -y apache2 php5 php5-gd php-xml-parser php5-intl
+	sudo apt-get install -y php5-sqlite php5-mysql smbclient curl libcurl3 php5-curl
 	echo -e "\033[34mDownloading source\033[0m"
 	cd /tmp
 	wget http://mirrors.owncloud.org/releases/owncloud-4.5.7.tar.bz2
