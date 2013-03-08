@@ -36,7 +36,7 @@ install() {
 	read host
 	host=${host:-owncloud.localhost}
 	sudo sed -i -e "s/\${HOST}/$host/" /etc/apache2/sites-available/owncloud
-	sudo sed -i -e "s/\${PATH}/$install_path/" /etc/apache2/sites-available/owncloud
+	sudo sed -i -e "s|\${PATH}|$install_path|g" /etc/apache2/sites-available/owncloud
 	sudo chown -R www-data.www-data $install_path $data_path
 
 	echo -e "\033[34mSetting up Apache\033[0m"
@@ -74,6 +74,3 @@ case "$1" in
         exit 1
         ;;
 esac
-
-
-sudo service redmine restart
