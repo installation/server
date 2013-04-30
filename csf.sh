@@ -19,6 +19,7 @@ install() {
 	sh /etc/csf/remove_apf_bfd.sh
 	echo -e "\033[34m###### Checking installation ######\033[0m"
 	perl /etc/csf/csftest.pl
+	rm -rf csf.tgz
 }
 
 uninstall() {
