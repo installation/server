@@ -1,0 +1,3 @@
+[submodule "imapsync"]
+	path = imapsync
+	url = git://github.com/imapsync/imapsync.git
