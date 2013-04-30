@@ -25,7 +25,7 @@ install() {
 
 uninstall() {
 	cd /etc/csf
-	sh uninstall.generic.sh
+	sh uninstall.sh
 }
 
 case "$1" in
