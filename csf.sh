@@ -20,6 +20,7 @@ install() {
 	echo -e "\033[34m###### Checking installation ######\033[0m"
 	perl /etc/csf/csftest.pl
 	rm -rf csf.tgz
+	sudo apt-get install libgd-graph-perl
 }
 
 uninstall() {
