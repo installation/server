@@ -4,3 +4,6 @@
 [submodule "tools/imapsync"]
 	path = tools/imapsync
 	url = git://github.com/imapsync/imapsync.git
+[submodule "tools/sshuttle"]
+	path = tools/sshuttle
+	url = git://github.com/apenwarr/sshuttle.git
