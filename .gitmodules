@@ -1,3 +1,6 @@
 [submodule "tools/speedtest-cli"]
 	path = tools/speedtest-cli
 	url = git@github.com:sivel/speedtest-cli.git
+[submodule "tools/imapsync"]
+	path = tools/imapsync
+	url = git@github.com:imapsync/imapsync.git
