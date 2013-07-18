@@ -15,14 +15,13 @@
 ### END INIT INFO
 
 
-APP_ROOT="/usr/share/redmine"
-APP_USER="redmine"
-DAEMON_OPTS="-C $APP_ROOT/config/puma.rb"
+APP_ROOT="/usr/share/redmine/"
+DAEMON_OPTS="-c $APP_ROOT/config/unicorn.rb -E production"
 PID_PATH="$APP_ROOT/tmp/pids"
 SOCKET_PATH="$APP_ROOT/tmp/sockets"
 SOCKET_FILE="$SOCKET_PATH/redmine.socket"
-WEB_SERVER_PID="$PID_PATH/puma.pid"
-NAME="redmine"
+WEB_SERVER_PID="$PID_PATH/unicorn.pid"
+NAME="unicorn"
 DESC="Redmine service"
 
 check_pid(){
@@ -49,7 +48,7 @@ start() {
   else
     if [ `whoami` = root ]; then
       ! [ -e $SOCKET_FILE ] || execute "rm $SOCKET_FILE"
-      execute "RAILS_ENV=production bundle exec puma $DAEMON_OPTS"
+      execute "nohup bundle exec unicorn_rails $DAEMON_OPTS  > /dev/null  2>&1 &"
       execute "mkdir -p $PID_PATH  > /dev/null 2>&1 &"
       echo "$DESC started"
     fi
@@ -63,12 +62,12 @@ stop() {
     ## Program is running, stop it.
     kill -QUIT `cat $WEB_SERVER_PID`
     ! [ -e $SOCKET_FILE ] || execute "rm $SOCKET_FILE"
-    execute "mkdir -p $PID_PATH > /dev/null 2>&1 &"
+    execute "mkdir -p $PID_PATH  > /dev/null  2>&1 &"
     rm "$WEB_SERVER_PID" >> /dev/null
     echo "$DESC stopped"
   else
     ## Program is not running, exit with error.
-    echo "Error! $DESC is not started!"
+    echo "Error! $DESC not started!"
     exit 1
   fi
 }
@@ -79,9 +78,9 @@ restart() {
   if [ "$PID" -ne 0 -a "$STATUS" -ne 0 ]; then
     echo "Restarting $DESC..."
     kill -USR2 `cat $WEB_SERVER_PID`
-    execute "mkdir -p $PID_PATH > /dev/null 2>&1"
+    execute "mkdir -p $PID_PATH  > /dev/null  2>&1 &"
     if [ `whoami` = root ]; then
-      execute "mkdir -p $PID_PATH > /dev/null 2>&1 &"
+      execute "mkdir -p $PID_PATH   > /dev/null  2>&1 &"
     fi
     echo "$DESC restarted."
   else
@@ -94,7 +93,7 @@ status() {
   cd $APP_ROOT
   check_pid
   if [ "$PID" -ne 0 -a "$STATUS" -ne 0 ]; then
-    echo "$DESC / Puma with PID $PID is running."
+    echo "$DESC / Unicorn with PID $PID is running."
   else
     echo "$DESC is not running."
     exit 1
