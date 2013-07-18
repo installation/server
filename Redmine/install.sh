@@ -1,5 +1,84 @@
 #!/bin/bash
 
+# MySQL root password
+rootpsw () {
+	ROOTPSW=$(dialog --stdout --title "MySQL Server" \
+		--backtitle "Installing $NAME" \
+		--passwordbox "Please enter MySQL root password!" 8 50)
+	ROOTPSW2=$(dialog --stdout --title "MySQL Server" \
+		--backtitle "Installing $NAME" \
+		--passwordbox "Please confirm MySQL root password!" 8 50)
+
+	if [[ $ROOTPSW != $ROOTPSW2 ]]; then
+		dialog --title "Error" \
+			--backtitle "Installing $NAME" \
+			--msgbox "\n Passwords do not match." 6 50
+		rootpsw
+	fi
+	if [[ -z ROOTPSW ]]; then
+		dialog --title "Error" \
+			--backtitle "Installing $NAME" \
+			--msgbox "\n No password given." 6 50
+		rootpsw
+	fi
+}
+
+# MySQL user password
+userpsw () {
+	USERPSW=$(dialog --stdout --title "MySQL Server" \
+		--backtitle "Installing $NAME" \
+		--passwordbox "Please enter MySQL user password!" 8 50)
+	USERPSW2=$(dialog --stdout --title "MySQL Server" \
+		--backtitle "Installing $NAME" \
+		--passwordbox "Please confirm MySQL user password!" 8 50)
+
+	if [[ $USERPSW != $USERPSW2 ]]; then
+		dialog --title "Error" \
+			--backtitle "Installing $NAME" \
+			--msgbox "\n Passwords do not match." 6 50
+		userpsw
+	fi
+	if [[ -z $USERPSW ]]; then
+		dialog --title "Error" \
+			--backtitle "Installing $NAME" \
+			--msgbox "\n No password given." 6 50
+		userpsw
+	fi
+}
+
+# Hostname
+host () {
+	HOST=$(dialog --stdout --title "Hostname" \
+		--backtitle "Installing $NAME" \
+		--inputbox "Please enter hostname!" 8 50)
+
+	if [[ -z $HOST ]]; then
+		dialog --title "Error" \
+			--backtitle "Installing $NAME" \
+			--msgbox "\n No hostname given." 6 50
+		host
+	fi
+}
+
+# Ruby port
+port () {
+	PORT=$(dialog --stdout --title "Ruby server port" \
+		--backtitle "Installing $NAME" \
+		--inputbox "Please enter port number for Ruby server!" 8 50 '9293')
+
+	if [[ -z $PORT ]]; then
+		dialog --title "Error" \
+			--backtitle "Installing $NAME" \
+			--msgbox "\n No IP address given." 6 50
+		port
+	fi
+}
+
+# Echo colored
+e () {
+	echo -e "\033[34m$1\033[0m"
+}
+
 # Installing dialog
 sudo apt-get install -y dialog --quiet
 
@@ -14,7 +93,7 @@ EASY=$(dialog --stdout --backtitle "Installing $NAME" \
 	 2 "No" off)
 
 case "$EASY" in
-	2)
+	1)
 		RS="puma"
 
 		DB="mysql"
@@ -143,23 +222,10 @@ sudo adduser \
 rm -rf /tmp/redmine && mkdir -p /tmp/redmine && cd /tmp/redmine
 wget http://rubyforge.org/frs/download.php/77023/redmine-2.3.2.tar.gz
 tar xvzf redmine-2.3.2.tar.gz
-sudo -u redmine -H mv redmine-2.3.2/* /usr/share/redmine/
+sudo mv redmine-2.3.2/* /usr/share/redmine/
+sudo chown redmine.redmine -R /usr/share/redmine/
 cd /usr/share/redmine
 rm -rf /tmp/redmine
-
-echo "gem '$RS'" | sudo -u redmine -H tee Gemfile.local
-sudo cp $DIR/$RS.rb /usr/share/redmine/config/
-sudo chown redmine:redmine /usr/share/redmine/config/$RS.rb
-
-e "Installing required gems"
-sudo bundle install --without development test sqlite $WITHOUT
-
-sudo -u redmine -H rake generate_secret_token
-
-sudo -u redmine -H mkdir -p tmp/ tmp/pdf/ public/plugin_assets/ tmp/sockets/ tmp/pids/
-sudo chmod -R 755 files/ public/plugin_assets/
-sudo chmod -R u+rwX tmp/
-sudo chmod -R 755 log/
 
 # Installing database
 e "Installing database"
@@ -168,12 +234,12 @@ case "$DB" in
 	"postgresql")
 		echo "
 production:
-	adapter: postgresql
-	database: redmine
-	host: localhost
-	username: redmine
-	password: \"$USERPSW\"
-	encoding: utf8" | sudo -u redmine -H tee config/database.yml
+  adapter: postgresql
+  database: redmine
+  host: localhost
+  username: redmine
+  password: \"$USERPSW\"
+  encoding: utf8" | sudo -u redmine -H tee config/database.yml
 
 		sudo -u postgres psql -d template1 -c "CREATE ROLE redmine LOGIN ENCRYPTED PASSWORD '$USERPSW' NOINHERIT VALID UNTIL 'infinity';"
 		sudo -u postgres psql -d template1 -c "CREATE DATABASE redmine WITH ENCODING='UTF8' OWNER=redmine;"
@@ -181,18 +247,33 @@ production:
 	*)
 		echo "
 production:
-	adapter: mysql2
-	database: redmine
-	host: localhost
-	username: redmine
-	password: \"$USERPSW\"
-	encoding: utf8" | sudo -u redmine -H tee config/database.yml
+  adapter: mysql2
+  database: redmine
+  host: localhost
+  username: redmine
+  password: \"$USERPSW\"
+  encoding: utf8" | sudo -u redmine -H tee config/database.yml
 
 		mysql -u root -p$ROOTPSW -e "CREATE USER 'redmine'@'localhost' IDENTIFIED BY '$USERPSW';"
 		mysql -u root -p$ROOTPSW -e 'CREATE DATABASE IF NOT EXISTS `redmine` DEFAULT CHARACTER SET `utf8` COLLATE `utf8_unicode_ci`;'
 		mysql -u root -p$ROOTPSW -e 'GRANT ALL PRIVILEGES ON redmine.* TO "redmine"@"localhost";'
 		;;
 esac
+
+echo "gem '$RS'" | sudo -u redmine -H tee Gemfile.local
+sudo cp $DIR/$RS.rb /usr/share/redmine/config/
+sudo chown redmine:redmine /usr/share/redmine/config/$RS.rb
+
+e "Installing required gems"
+sudo gem install bundler
+sudo bundle install --without development test sqlite $WITHOUT
+
+sudo -u redmine -H rake generate_secret_token
+
+sudo -u redmine -H mkdir -p tmp/ tmp/pdf/ public/plugin_assets/ tmp/sockets/ tmp/pids/
+sudo chmod -R 755 files/ public/plugin_assets/
+sudo chmod -R u+rwX tmp/
+sudo chmod -R 755 log/
 
 sudo -u redmine -H RAILS_ENV=production rake db:migrate
 sudo -u redmine -H RAILS_ENV=production rake redmine:load_default_data
@@ -224,7 +305,7 @@ server {
   server_tokens off;     # don't show the version number, a security best practice
   root /usr/share/redmine/public;
 
-  # individual nginx logs for this gitlab vhost
+  # individual nginx logs for this redmine vhost
   access_log  /var/log/nginx/redmine_access.log;
   error_log   /var/log/nginx/redmine_error.log;
 
@@ -248,7 +329,7 @@ server {
     proxy_pass http://redmine;
   }
 }" | sudo tee /etc/nginx/sites-available/redmine
-		sudo ln -s /etc/nginx/sites-available/gitlab /etc/nginx/sites-enabled/gitlab
+		sudo ln -s /etc/nginx/sites-available/redmine /etc/nginx/sites-enabled/redmine
 
 		sudo service nginx restart
 		;;
@@ -285,6 +366,7 @@ server {
 
 		sudo a2enmod proxy proxy_http rewrite
 		sudo a2ensite redmine
+		sudo mkdir -p /var/log/apache2/redmine
 		sudo service apache2 restart
 		;;
 esac
@@ -296,86 +378,3 @@ sleep 10
 echo -e "\033[34mRedmine successfully installed\033[0m"
 echo -e "\033[34mAdmin login\033[0m..................admin"
 echo -e "\033[34mAdmin password\033[0m...............admin"
-
-
-
-
-
-# MySQL root password
-rootpsw () {
-	ROOTPSW=$(dialog --stdout --title "MySQL Server" \
-		--backtitle "Installing $NAME" \
-		--passwordbox "Please enter MySQL root password!" 8 50)
-	ROOTPSW2=$(dialog --stdout --title "MySQL Server" \
-		--backtitle "Installing $NAME" \
-		--passwordbox "Please confirm MySQL root password!" 8 50)
-
-	if [[ $ROOTPSW != $ROOTPSW2 ]]; then
-		dialog --title "Error" \
-			--backtitle "Installing $NAME" \
-			--msgbox "\n Passwords do not match." 6 50
-		rootpsw
-	fi
-	if [[ ${ROOTPSW:-none} = "none" ]]; then
-		dialog --title "Error" \
-			--backtitle "Installing $NAME" \
-			--msgbox "\n No password given." 6 50
-		rootpsw
-	fi
-}
-
-# MySQL user password
-userpsw () {
-	USERPSW=$(dialog --stdout --title "MySQL Server" \
-		--backtitle "Installing $NAME" \
-		--passwordbox "Please enter MySQL user password!" 8 50)
-	USERPSW2=$(dialog --stdout --title "MySQL Server" \
-		--backtitle "Installing $NAME" \
-		--passwordbox "Please confirm MySQL user password!" 8 50)
-
-	if [[ $USERPSW != $USERPSW2 ]]; then
-		dialog --title "Error" \
-			--backtitle "Installing $NAME" \
-			--msgbox "\n Passwords do not match." 6 50
-		userpsw
-	fi
-	if [[ -z $USERPSW ]]; then
-		dialog --title "Error" \
-			--backtitle "Installing $NAME" \
-			--msgbox "\n No password given." 6 50
-		userpsw
-	fi
-}
-
-# Hostname
-host () {
-	HOST=$(dialog --stdout --title "Hostname" \
-		--backtitle "Installing $NAME" \
-		--inputbox "Please enter hostname!" 8 50)
-
-	if [[ -z $HOST ]]; then
-		dialog --title "Error" \
-			--backtitle "Installing $NAME" \
-			--msgbox "\n No hostname given." 6 50
-		host
-	fi
-}
-
-# Ruby port
-port () {
-	PORT=$(dialog --stdout --title "Ruby server port" \
-		--backtitle "Installing $NAME" \
-		--inputbox "Please enter port number for Ruby server!" 8 50 '9293')
-
-	if [[ -z $PORT ]]; then
-		dialog --title "Error" \
-			--backtitle "Installing $NAME" \
-			--msgbox "\n No IP address given." 6 50
-		port
-	fi
-}
-
-# Echo colored
-e () {
-	echo -e "\033[34m$1\033[0m"
-}
