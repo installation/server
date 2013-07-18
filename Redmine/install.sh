@@ -90,7 +90,6 @@ case "$EASY" in
 			2)
 				WS="nginx"
 				ws="nginx"
-				ip
 				;;
 			*)
 				WS="apache"
@@ -359,20 +358,6 @@ host () {
 			--backtitle "Installing $NAME" \
 			--msgbox "\n No hostname given." 6 50
 		host
-	fi
-}
-
-# IP Address
-ip () {
-	IP=$(dialog --stdout --title "IP Address" \
-		--backtitle "Installing $NAME" \
-		--inputbox "Please enter server IP address!" 8 50)
-
-	if [[ -z $IP ]]; then
-		dialog --title "Error" \
-			--backtitle "Installing $NAME" \
-			--msgbox "\n No IP address given." 6 50
-		ip
 	fi
 }
 
