@@ -186,15 +186,15 @@ if [[ $RUBY == "on" ]]; then
 	fi
 
 	rm -rf /tmp/ruby && mkdir /tmp/ruby && cd /tmp/ruby
-	curl --progress http://ftp.ruby-lang.org/pub/ruby/1.9/ruby-1.9.3-p392.tar.gz | tar xz
-	cd ruby-1.9.3-p392
+	curl --progress ftp://ftp.ruby-lang.org/pub/ruby/2.0/ruby-2.0.0-p247.tar.gz | tar xz
+	cd ruby-2.0.0-p247
 	./configure
 	make
 	sudo make install
 fi
 
 # Install bundler gem
-sudo gem install bundler
+sudo gem install bundler --no-ri --no-rdoc
 
 # Add git user
 sudo adduser --disabled-login --gecos 'GitLab' git
@@ -208,7 +208,7 @@ sudo -u git -H git clone https://github.com/gitlabhq/gitlab-shell.git
 cd gitlab-shell
 
 # switch to right version
-git checkout v1.3.0
+git checkout v1.7.0
 
 # Setup gitlab-shell
 sudo -u git -H cp config.yml.example config.yml
@@ -225,7 +225,7 @@ sudo -u git -H git clone https://github.com/gitlabhq/gitlabhq.git gitlab
 cd /home/git/gitlab
 
 # Checkout to stable release
-sudo -u git -H git checkout 5-1-stable
+sudo -u git -H git checkout 5-4-stable
 
 cd /home/git/gitlab
 
