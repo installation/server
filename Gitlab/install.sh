@@ -45,7 +45,7 @@ case "$MS" in
 		;;
 	*)
 		MS="Postfix"
-		ms="postfix"
+		ms="postfix postfix-policyd-spf-python"
 		echo "postfix postfix/mailname string $(hostname -f)" | sudo debconf-set-selections
 		echo "postfix postfix/main_mailer_type string 'Internet Site'" | sudo debconf-set-selections
 		;;
