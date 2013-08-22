@@ -1,23 +1,35 @@
 #!/bin/bash
 
+# Script to install Redmine 2.3.2
+# Author: Márk Sági-Kazár (sagikazarmark@gmail.com)
+# This script installs Redmine on Debian/Ubuntu based distributions.
+#
+# Version: 2.3.2
+
+DIR=$(cd `dirname $0` && pwd)
+NAME="Redmine"
+VER="2.3.2"
+
+# Function definitions
+
 # MySQL root password
 rootpsw () {
 	ROOTPSW=$(dialog --stdout --title "MySQL Server" \
-		--backtitle "Installing $NAME" \
+		--backtitle "Installing $NAME $VER" \
 		--passwordbox "Please enter MySQL root password!" 8 50)
 	ROOTPSW2=$(dialog --stdout --title "MySQL Server" \
-		--backtitle "Installing $NAME" \
+		--backtitle "Installing $NAME $VER" \
 		--passwordbox "Please confirm MySQL root password!" 8 50)
 
 	if [[ $ROOTPSW != $ROOTPSW2 ]]; then
 		dialog --title "Error" \
-			--backtitle "Installing $NAME" \
+			--backtitle "Installing $NAME $VER" \
 			--msgbox "\n Passwords do not match." 6 50
 		rootpsw
 	fi
 	if [[ -z ROOTPSW ]]; then
 		dialog --title "Error" \
-			--backtitle "Installing $NAME" \
+			--backtitle "Installing $NAME $VER" \
 			--msgbox "\n No password given." 6 50
 		rootpsw
 	fi
@@ -26,21 +38,21 @@ rootpsw () {
 # MySQL user password
 userpsw () {
 	USERPSW=$(dialog --stdout --title "MySQL Server" \
-		--backtitle "Installing $NAME" \
+		--backtitle "Installing $NAME $VER" \
 		--passwordbox "Please enter MySQL user password!" 8 50)
 	USERPSW2=$(dialog --stdout --title "MySQL Server" \
-		--backtitle "Installing $NAME" \
+		--backtitle "Installing $NAME $VER" \
 		--passwordbox "Please confirm MySQL user password!" 8 50)
 
 	if [[ $USERPSW != $USERPSW2 ]]; then
 		dialog --title "Error" \
-			--backtitle "Installing $NAME" \
+			--backtitle "Installing $NAME $VER" \
 			--msgbox "\n Passwords do not match." 6 50
 		userpsw
 	fi
 	if [[ -z $USERPSW ]]; then
 		dialog --title "Error" \
-			--backtitle "Installing $NAME" \
+			--backtitle "Installing $NAME $VER" \
 			--msgbox "\n No password given." 6 50
 		userpsw
 	fi
@@ -49,27 +61,27 @@ userpsw () {
 # Hostname
 host () {
 	HOST=$(dialog --stdout --title "Hostname" \
-		--backtitle "Installing $NAME" \
+		--backtitle "Installing $NAME $VER" \
 		--inputbox "Please enter hostname!" 8 50)
 
 	if [[ -z $HOST ]]; then
 		dialog --title "Error" \
-			--backtitle "Installing $NAME" \
+			--backtitle "Installing $NAME $VER" \
 			--msgbox "\n No hostname given." 6 50
 		host
 	fi
 }
 
-# Ruby port
+# Rails server port
 port () {
-	PORT=$(dialog --stdout --title "Ruby server port" \
-		--backtitle "Installing $NAME" \
-		--inputbox "Please enter port number for Ruby server!" 8 50 '9293')
+	PORT=$(dialog --stdout --title "Rails server port" \
+		--backtitle "Installing $NAME $VER" \
+		--inputbox "Please enter port number for Rails server!" 8 50 '9293')
 
 	if [[ -z $PORT ]]; then
 		dialog --title "Error" \
-			--backtitle "Installing $NAME" \
-			--msgbox "\n No IP address given." 6 50
+			--backtitle "Installing $NAME $VER" \
+			--msgbox "\n No port number given." 6 50
 		port
 	fi
 }
@@ -82,19 +94,16 @@ e () {
 # Installing dialog
 sudo apt-get install -y dialog --quiet
 
-DIR=$(cd `dirname $0` && pwd)
-NAME="Redmine"
-
-# Ask webserver
-EASY=$(dialog --stdout --backtitle "Installing $NAME" \
+# Install with defaults
+EASY=$(dialog --stdout --backtitle "Installing $NAME $VER" \
 	--title "Easy install" \
-	--radiolist "Do you want to install $NAME with default preferences?" 10 34 2 \
+	--radiolist "Do you want to install $NAME $VER with default preferences?" 10 34 2 \
 	 1 "Yes" on \
-	 2 "No" off)
+	 2 "No" off )
 
 case "$EASY" in
 	1)
-		RS="puma"
+		RS="unicorn"
 
 		DB="mysql"
 		db="mysql-server mysql-client libmysqlclient-dev"
@@ -118,27 +127,27 @@ case "$EASY" in
 	*)
 
 		# Rails server
-		RS=$(dialog --stdout --backtitle "Installing $NAME" \
+		RS=$(dialog --stdout --backtitle "Installing $NAME $VER" \
 			--title "Choose Rails server" \
 			--radiolist "Which Rails server do you want to use?" 10 34 2 \
-			 1 "Puma" on \
-			 2 "Unicorn" off)
+			 1 "Unicorn" off \
+			 2 "Puma" on )
 
 		case "$RS" in
 			2)
-				RS="unicorn"
+				RS="puma"
 				;;
 			*)
-				RS="puma"
+				RS="unicorn"
 				;;
 		esac
 
 		# Database server
-		DB=$(dialog --stdout --backtitle "Installing $NAME" \
+		DB=$(dialog --stdout --backtitle "Installing $NAME $VER" \
 			--title "Choose Database" \
 			--radiolist "Which database server do you want to use?" 10 34 2 \
 			 1 "MySQL" on \
-			 2 "PostgreSQL" off)
+			 2 "PostgreSQL" off )
 
 		case "$DB" in
 			2)
@@ -159,11 +168,11 @@ case "$EASY" in
 		esac
 
 		# Webserver
-		WS=$(dialog --stdout --backtitle "Installing $NAME" \
+		WS=$(dialog --stdout --backtitle "Installing $NAME $VER" \
 			--title "Choose Webserver" \
 			--radiolist "Which webserver do you want to use?" 10 34 2 \
 			 1 "Apache" on \
-			 2 "Nginx" off)
+			 2 "Nginx" off )
 
 		case "$WS" in
 			2)
@@ -179,11 +188,12 @@ case "$EASY" in
 
 		host
 
-		RUBY=$(dialog --stdout --backtitle "Installing $NAME" \
+		# Ruby
+		RUBY=$(dialog --stdout --backtitle "Installing $NAME $VER" \
 			--title "Install ruby" \
 			--radiolist "Do you want to install ruby (required)?" 10 34 2 \
 			 1 "Yes" on \
-			 2 "No" off)
+			 2 "No" off )
 
 		case "$RUBY" in
 			2)
@@ -196,36 +206,39 @@ case "$EASY" in
 		;;
 esac
 
+# Installing dependencies
+e "Installing dependencies"
 
+sudo apt-get install -y --quiet build-essential make zlib1g-dev libyaml-dev libssl-dev libgdbm-dev libreadline-dev libncurses5-dev libffi-dev curl git-core openssh-server redis-server checkinstall libxml2-dev libxslt-dev libcurl4-openssl-dev libicu-dev python python2.7 imagemagick libmagick++-dev $ws $db
 
-sudo apt-get install -y build-essential make zlib1g-dev libyaml-dev libssl-dev libgdbm-dev libreadline-dev libncurses5-dev libffi-dev curl git-core openssh-server redis-server checkinstall libxml2-dev libxslt-dev libcurl4-openssl-dev libicu-dev python python2.7 imagemagick libmagick++-dev $ws $db
-
+# Installing Ruby 2.0.0
 if [[ $RUBY == "on" ]]; then
+	e "Installing Ruby 2.0.0"
+
 	rm -rf /tmp/ruby && mkdir /tmp/ruby && cd /tmp/ruby
-	curl --progress http://ftp.ruby-lang.org/pub/ruby/1.9/ruby-1.9.3-p392.tar.gz | tar xz
-	cd ruby-1.9.3-p392
+	curl --progress ftp://ftp.ruby-lang.org/pub/ruby/2.0/ruby-2.0.0-p247.tar.gz | tar xz
+	cd ruby-2.0.0-p247
 	./configure
 	make
 	sudo make install
 	rm -rf /tmp/ruby
 fi
 
-sudo adduser \
-  --system \
-  --shell /bin/sh \
-  --gecos 'Redmine' \
-  --group \
-  --disabled-password \
-  --home /usr/share/redmine \
-  redmine
+# Adding user
+e "Adding $NAME user"
 
-rm -rf /tmp/redmine && mkdir -p /tmp/redmine && cd /tmp/redmine
+sudo adduser --disabled-login --gecos 'Redmine' --home /usr/share/redmine redmine
+
+# Downloading files
+e "Downloading $NAME $VER"
+
+cd /tmp
+rm -rf redmine-2.3.2/
 wget http://rubyforge.org/frs/download.php/77023/redmine-2.3.2.tar.gz
 tar xvzf redmine-2.3.2.tar.gz
 sudo mv redmine-2.3.2/* /usr/share/redmine/
 sudo chown redmine.redmine -R /usr/share/redmine/
-cd /usr/share/redmine
-rm -rf /tmp/redmine
+rm -rf /tmp/redmine-2.3.2
 
 # Installing database
 e "Installing database"
@@ -260,13 +273,24 @@ production:
 		;;
 esac
 
+
+cd /usr/share/redmine
+
+# Setting up Rails server
+e "Setting up Rails server"
+
 echo "gem '$RS'" | sudo -u redmine -H tee Gemfile.local
 sudo cp $DIR/$RS.rb /usr/share/redmine/config/
 sudo chown redmine:redmine /usr/share/redmine/config/$RS.rb
 
+# Installing required gems
 e "Installing required gems"
+
 sudo gem install bundler
 sudo bundle install --without development test sqlite $WITHOUT
+
+# Setting up
+e "Setting up $NAME $VER"
 
 sudo -u redmine -H rake generate_secret_token
 
@@ -291,32 +315,26 @@ e "Setting up webserver"
 case "$WS" in
 	"nginx")
 		echo "
-# GITLAB
-# Maintainer: @randx
-# App Version: 5.0
+# REDMINE
+# Maintainer: @sagikazarmark
+# App Version: $VER
 
 upstream redmine {
   server unix:/usr/share/redmine/tmp/sockets/redmine.socket;
 }
 
 server {
-  listen *:80 default_server;         # e.g., listen 192.168.1.1:80; In most cases *:80 is a good idea
-  server_name $HOST;     # e.g., server_name source.example.com;
-  server_tokens off;     # don't show the version number, a security best practice
+  listen *:80 default_server;
+  server_name $HOST;
+  server_tokens off;
   root /usr/share/redmine/public;
-
-  # individual nginx logs for this redmine vhost
   access_log  /var/log/nginx/redmine_access.log;
   error_log   /var/log/nginx/redmine_error.log;
 
   location / {
-    # serve static files from defined root folder;.
-    # @redmine is a named location for the upstream fallback, see below
     try_files $uri $uri/index.html $uri.html @redmine;
   }
 
-  # if a file, which is not found in the root folder is requested,
-  # then the proxy pass the request to the upsteam (redmine unicorn)
   location @redmine {
     proxy_read_timeout 300;
     proxy_connect_timeout 300;
@@ -371,10 +389,12 @@ server {
 		;;
 esac
 
+# Starting service
 e "Starting service"
 sudo service redmine start
 sleep 10
 
-echo -e "\033[34mRedmine successfully installed\033[0m"
-echo -e "\033[34mAdmin login\033[0m..................admin"
-echo -e "\033[34mAdmin password\033[0m...............admin"
+e "Redmine successfully installed"
+e "Host.........................$HOST"
+e "Admin login..................admin"
+e "Admin password...............admin"
