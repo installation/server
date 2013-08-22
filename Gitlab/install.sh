@@ -1,19 +1,20 @@
 #!/bin/bash
 
 # Gitlab install script
+NAME="Gitlab 5.4"
 
 # Installing dialog
 sudo apt-get install -y dialog --quiet
 
 # Ask database server
-DB=$(dialog --stdout --backtitle "Installing Gitlab" \
+DB=$(dialog --stdout --backtitle "Installing $NAME" \
 	--title "Choose Database" \
 	--radiolist "What database system do you want to use?" 10 34 2 \
 	 1 "MySQL" on \
 	 2 "PostgreSQL" off)
 
 # Ask webserver
-WS=$(dialog --stdout --backtitle "Installing Gitlab" \
+WS=$(dialog --stdout --backtitle "Installing $NAME" \
 	--title "Choose Webserver" \
 	--radiolist "What webserver do you want to use?" 10 34 2 \
 	 1 "Apache" on \
@@ -31,7 +32,7 @@ case "$WS" in
 esac
 
 # Ask mail server
-MS=$(dialog --stdout --backtitle "Installing Gitlab" \
+MS=$(dialog --stdout --backtitle "Installing $NAME" \
 	--title "Choose Mail server type" \
 	--radiolist "What mail server do you want to use?" 10 34 2 \
 	 1 "Postfix" on \
@@ -50,7 +51,7 @@ case "$MS" in
 		;;
 esac
 
-RUBY=$(dialog --stdout --backtitle "Installing Gitlab" \
+RUBY=$(dialog --stdout --backtitle "Installing $NAME" \
 	--title "Install ruby" \
 	--radiolist "Do you want to install ruby (required)?" 10 34 2 \
 	 1 "Yes" on \
@@ -68,21 +69,21 @@ esac
 # Ask MySQL root password
 rootpsw () {
 	ROOTPSW=$(dialog --stdout --title "MySQL Server" \
-		--backtitle "Installing Gitlab" \
+		--backtitle "Installing $NAME" \
 		--passwordbox "Please enter MySQL root password!" 8 50)
 	ROOTPSW2=$(dialog --stdout --title "MySQL Server" \
-		--backtitle "Installing Gitlab" \
+		--backtitle "Installing $NAME" \
 		--passwordbox "Please confirm MySQL root password!" 8 50)
 
 	if [[ $ROOTPSW != $ROOTPSW2 ]]; then
 		dialog --title "Error" \
-			--backtitle "Installing Gitlab" \
+			--backtitle "Installing $NAME" \
 			--msgbox "\n Passwords do not match." 6 50
 		rootpsw
 	fi
 	if [[ ${ROOTPSW:-none} = "none" ]]; then
 		dialog --title "Error" \
-			--backtitle "Installing Gitlab" \
+			--backtitle "Installing $NAME" \
 			--msgbox "\n No password given." 6 50
 		rootpsw
 	fi
@@ -91,21 +92,21 @@ rootpsw () {
 # Ask MySQL Gitlab password
 gitlabpsw () {
 	GITLABPSW=$(dialog --stdout --title "MySQL Server" \
-		--backtitle "Installing Gitlab" \
+		--backtitle "Installing $NAME" \
 		--passwordbox "Please enter MySQL gitlab user password!" 8 50)
 	GITLABPSW2=$(dialog --stdout --title "MySQL Server" \
-		--backtitle "Installing Gitlab" \
+		--backtitle "Installing $NAME" \
 		--passwordbox "Please confirm MySQL gitlab user password!" 8 50)
 
 	if [[ $GITLABPSW != $GITLABPSW2 ]]; then
 		dialog --title "Error" \
-			--backtitle "Installing Gitlab" \
+			--backtitle "Installing $NAME" \
 			--msgbox "\n Passwords do not match." 6 50
 		gitlabpsw
 	fi
 	if [[ ${GITLABPSW:-none} = "none" ]]; then
 		dialog --title "Error" \
-			--backtitle "Installing Gitlab" \
+			--backtitle "Installing $NAME" \
 			--msgbox "\n No password given." 6 50
 		gitlabpsw
 	fi
@@ -114,12 +115,12 @@ gitlabpsw () {
 # Ask Gitlab hostname
 gitlabhost () {
 	GITLABHOST=$(dialog --stdout --title "Gitlab Host" \
-		--backtitle "Installing Gitlab" \
+		--backtitle "Installing $NAME" \
 		--inputbox "Please enter Gitlab hostname!" 8 50)
 
 	if [[ ${GITLABHOST:-none} == "none" ]]; then
 		dialog --title "Error" \
-			--backtitle "Installing Gitlab" \
+			--backtitle "Installing $NAME" \
 			--msgbox "\n No hostname given." 6 50
 		gitlabhost
 	fi
@@ -149,12 +150,12 @@ gitlabhost
 if [[ $WS == "nginx" ]]; then
 	gitlabip () {
 		GITLABIP=$(dialog --stdout --title "Gitlab IP" \
-			--backtitle "Installing Gitlab" \
+			--backtitle "Installing $NAME" \
 			--inputbox "Please enter Gitlab server IP!" 8 50)
 
 		if [[ ${GITLABIP:-none} == "none" ]]; then
 			dialog --title "Error" \
-				--backtitle "Installing Gitlab" \
+				--backtitle "Installing $NAME" \
 				--msgbox "\n No IP given." 6 50
 			gitlabip
 		fi
@@ -241,7 +242,7 @@ case "$DB" in
 
 		mysql -u root -p$ROOTPSW -e "CREATE USER 'gitlab'@'localhost' IDENTIFIED BY '$GITLABPSW';"
 		mysql -u root -p$ROOTPSW -e 'CREATE DATABASE IF NOT EXISTS `gitlabhq_production` DEFAULT CHARACTER SET `utf8` COLLATE `utf8_unicode_ci`;'
-		mysql -u root -p$ROOTPSW -e 'GRANT SELECT, LOCK TABLES, INSERT, UPDATE, DELETE, CREATE, DROP, INDEX, ALTER ON `gitlabhq_production`.* TO "gitlab"@"localhost";'
+		mysql -u root -p$ROOTPSW -e 'GRANT SELECT, LOCK TABLES, INSERT, UPDATE, DELETE, CREATE, DROP, INDEX, ALTER ON `gitlabhq_production`.* TO "$NAME"@"localhost";'
 		;;
 esac
 
@@ -271,7 +272,7 @@ gem install charlock_holmes --version '0.6.9'
 sudo -u git -H bundle install --deployment --without development test $WITHOUT
 
 # Run Setup
-sudo -u git -H bundle exec rake gitlab:setup RAILS_ENV=production
+echo "yes" | sudo -u git -H bundle exec rake gitlab:setup RAILS_ENV=production
 
 # Install Init script
 sudo curl --output /etc/init.d/gitlab https://raw.github.com/gitlabhq/gitlabhq/master/lib/support/init.d/gitlab
