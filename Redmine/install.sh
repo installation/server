@@ -209,7 +209,7 @@ esac
 # Installing dependencies
 e "Installing dependencies"
 
-sudo apt-get install -y --quiet build-essential make zlib1g-dev libyaml-dev libssl-dev libgdbm-dev libreadline-dev libncurses5-dev libffi-dev curl git-core openssh-server redis-server checkinstall libxml2-dev libxslt-dev libcurl4-openssl-dev libicu-dev python python2.7 imagemagick libmagick++-dev $ws $db
+sudo DEBIAN_FRONTEND="noninteractive" apt-get install -y --quiet build-essential make zlib1g-dev libyaml-dev libssl-dev libgdbm-dev libreadline-dev libncurses5-dev libffi-dev curl git-core openssh-server redis-server checkinstall libxml2-dev libxslt-dev libcurl4-openssl-dev libicu-dev python python2.7 imagemagick libmagick++-dev $ws $db
 
 # Installing Ruby 2.0.0
 if [[ $RUBY == "on" ]]; then
@@ -239,14 +239,14 @@ tar xvzf redmine-2.3.2.tar.gz
 sudo mv redmine-2.3.2/* /usr/share/redmine/
 sudo chown redmine.redmine -R /usr/share/redmine/
 rm -rf /tmp/redmine-2.3.2
+cd /usr/share/redmine
 
 # Installing database
 e "Installing database"
 
 case "$DB" in
 	"postgresql")
-		echo "
-production:
+		echo -e "production:
   adapter: postgresql
   database: redmine
   host: localhost
@@ -258,8 +258,7 @@ production:
 		sudo -u postgres psql -d template1 -c "CREATE DATABASE redmine WITH ENCODING='UTF8' OWNER=redmine;"
 		;;
 	*)
-		echo "
-production:
+		echo -e "production:
   adapter: mysql2
   database: redmine
   host: localhost
@@ -273,8 +272,6 @@ production:
 		;;
 esac
 
-
-cd /usr/share/redmine
 
 # Setting up Rails server
 e "Setting up Rails server"
@@ -314,8 +311,7 @@ e "Setting up webserver"
 
 case "$WS" in
 	"nginx")
-		echo "
-# REDMINE
+		echo "# REDMINE
 # Maintainer: @sagikazarmark
 # App Version: $VER
 
@@ -352,8 +348,7 @@ server {
 		sudo service nginx restart
 		;;
 	*)
-		echo "
-<VirtualHost *:80>
+		echo "<VirtualHost *:80>
 	ServerName $HOST
 	ServerAdmin webmaster@$HOST
 
@@ -375,10 +370,10 @@ server {
 
 		case "$RS" in
 			"unicorn")
-				echo "listen \"127.0.0.1:$PORT\"" | sudo tee -a config/unicorn.rb
+				echo -e "\nlisten '127.0.0.1:$PORT'" | sudo tee -a config/unicorn.rb
 				;;
 			*)
-				echo "bind 'tcp://127.0.0.1:$PORT'" | sudo tee -a config/puma.rb
+				echo -e "\nbind 'tcp://127.0.0.1:$PORT'" | sudo tee -a config/puma.rb
 				;;
 		esac
 
