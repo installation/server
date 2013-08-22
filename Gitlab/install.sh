@@ -273,8 +273,18 @@ sudo -u git -H mkdir tmp/sockets/
 sudo chmod -R u+rwX  tmp/pids/
 sudo chmod -R u+rwX  tmp/sockets/
 
-# Copy the example Puma config
-sudo -u git -H cp config/puma.rb.example config/puma.rb
+# Create public/uploads directory otherwise backup will fail
+sudo -u git -H mkdir public/uploads
+sudo chmod -R u+rwX  public/uploads
+
+# Copy the example Unicorn config
+sudo -u git -H cp config/unicorn.rb.example config/unicorn.rb
+
+# Configure Git global settings for git user, useful when editing via web
+# Edit user.email according to what is set in gitlab.yml
+sudo -u git -H git config --global user.name "GitLab"
+sudo -u git -H git config --global user.email "$GITLABHOST"
+sudo -u git -H git config --global core.autocrlf input
 
 # Install gems
 cd /home/git/gitlab
