@@ -4,7 +4,7 @@
 NAME="Gitlab 5.4"
 
 # Installing dialog
-sudo apt-get install -y dialog --quiet
+sudo apt-get install -y --quiet dialog
 
 # Ask database server
 DB=$(dialog --stdout --backtitle "Installing $NAME" \
@@ -164,7 +164,7 @@ if [[ $WS == "nginx" ]]; then
 fi
 
 # Install dependencies
-sudo apt-get install -y build-essential zlib1g-dev libyaml-dev libssl-dev libgdbm-dev libreadline-dev libncurses5-dev libffi-dev curl git-core openssh-server redis-server checkinstall libxml2-dev libxslt-dev libcurl4-openssl-dev libicu-dev python python2.7 $ws $db $ms
+sudo apt-get install -y --quiet build-essential zlib1g-dev libyaml-dev libssl-dev libgdbm-dev libreadline-dev libncurses5-dev libffi-dev curl git-core openssh-server redis-server checkinstall libxml2-dev libxslt-dev libcurl4-openssl-dev libicu-dev python python2.7 $ws $db $ms
 
 # Check python2 available
 if [ ! -f /usr/bin/python2 ];
