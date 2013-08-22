@@ -97,7 +97,7 @@ sudo apt-get install -y dialog --quiet
 # Install with defaults
 EASY=$(dialog --stdout --backtitle "Installing $NAME $VER" \
 	--title "Easy install" \
-	--radiolist "Do you want to install $NAME $VER with default preferences?" 10 34 2 \
+	--radiolist "Do you want to install $NAME $VER with default preferences?" 11 40 2 \
 	 1 "Yes" on \
 	 2 "No" off )
 
@@ -129,9 +129,9 @@ case "$EASY" in
 		# Rails server
 		RS=$(dialog --stdout --backtitle "Installing $NAME $VER" \
 			--title "Choose Rails server" \
-			--radiolist "Which Rails server do you want to use?" 10 34 2 \
-			 1 "Unicorn" off \
-			 2 "Puma" on )
+			--radiolist "Which Rails server do you want to use?" 10 40 2 \
+			 1 "Unicorn" on \
+			 2 "Puma" off )
 
 		case "$RS" in
 			2)
@@ -145,7 +145,7 @@ case "$EASY" in
 		# Database server
 		DB=$(dialog --stdout --backtitle "Installing $NAME $VER" \
 			--title "Choose Database" \
-			--radiolist "Which database server do you want to use?" 10 34 2 \
+			--radiolist "Which database server do you want to use?" 10 40 2 \
 			 1 "MySQL" on \
 			 2 "PostgreSQL" off )
 
@@ -170,7 +170,7 @@ case "$EASY" in
 		# Webserver
 		WS=$(dialog --stdout --backtitle "Installing $NAME $VER" \
 			--title "Choose Webserver" \
-			--radiolist "Which webserver do you want to use?" 10 34 2 \
+			--radiolist "Which webserver do you want to use?" 10 40 2 \
 			 1 "Apache" on \
 			 2 "Nginx" off )
 
@@ -191,7 +191,7 @@ case "$EASY" in
 		# Ruby
 		RUBY=$(dialog --stdout --backtitle "Installing $NAME $VER" \
 			--title "Install ruby" \
-			--radiolist "Do you want to install ruby (required)?" 10 34 2 \
+			--radiolist "Do you want to install ruby (required)?" 10 40 2 \
 			 1 "Yes" on \
 			 2 "No" off )
 
