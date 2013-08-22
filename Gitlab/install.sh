@@ -3,12 +3,94 @@
 # Gitlab install script
 NAME="Gitlab 5.4"
 
+# Checking root
 if [[ "$(id -u)" -ne 0 && "$(lsb_release -si)" -ne "Ubuntu" ]] ; then
 	echo -e "\e[1;31mThis script must be run as root!\e[0m"
 	exit
 elif [[ "$(lsb_release -si)" -ne "Ubuntu" ]] ; then
 	apt-get install sudo
 fi
+
+# Functions
+
+# MySQL root password
+rootpsw () {
+	ROOTPSW=$(dialog --stdout --title "MySQL Server" \
+		--backtitle "Installing $NAME" \
+		--passwordbox "Please enter MySQL root password!" 8 50)
+	ROOTPSW2=$(dialog --stdout --title "MySQL Server" \
+		--backtitle "Installing $NAME" \
+		--passwordbox "Please confirm MySQL root password!" 8 50)
+
+	if [[ $ROOTPSW != $ROOTPSW2 ]]; then
+		dialog --title "Error" \
+			--backtitle "Installing $NAME" \
+			--msgbox "\n Passwords do not match." 6 50
+		rootpsw
+	fi
+	if [[ -z ROOTPSW ]]; then
+		dialog --title "Error" \
+			--backtitle "Installing $NAME" \
+			--msgbox "\n No password given." 6 50
+		rootpsw
+	fi
+}
+
+# MySQL user password
+userpsw () {
+	USERPSW=$(dialog --stdout --title "MySQL Server" \
+		--backtitle "Installing $NAME" \
+		--passwordbox "Please enter MySQL user password!" 8 50)
+	USERPSW2=$(dialog --stdout --title "MySQL Server" \
+		--backtitle "Installing $NAME" \
+		--passwordbox "Please confirm MySQL user password!" 8 50)
+
+	if [[ $USERPSW != $USERPSW2 ]]; then
+		dialog --title "Error" \
+			--backtitle "Installing $NAME" \
+			--msgbox "\n Passwords do not match." 6 50
+		userpsw
+	fi
+	if [[ -z $USERPSW ]]; then
+		dialog --title "Error" \
+			--backtitle "Installing $NAME" \
+			--msgbox "\n No password given." 6 50
+		userpsw
+	fi
+}
+
+# Hostname
+host () {
+	HOST=$(dialog --stdout --title "Hostname" \
+		--backtitle "Installing $NAME" \
+		--inputbox "Please enter hostname!" 8 50)
+
+	if [[ -z $HOST ]]; then
+		dialog --title "Error" \
+			--backtitle "Installing $NAME" \
+			--msgbox "\n No hostname given." 6 50
+		host
+	fi
+}
+
+# Ruby port
+port () {
+	PORT=$(dialog --stdout --title "Ruby server port" \
+		--backtitle "Installing $NAME" \
+		--inputbox "Please enter port number for Ruby server!" 8 50 '9293')
+
+	if [[ -z $PORT ]]; then
+		dialog --title "Error" \
+			--backtitle "Installing $NAME" \
+			--msgbox "\n No IP address given." 6 50
+		port
+	fi
+}
+
+# Echo colored
+e () {
+	echo -e "\033[34m$1\033[0m"
+}
 
 # Installing dialog
 sudo apt-get install -y --quiet dialog
@@ -73,66 +155,6 @@ case "$RUBY" in
 		;;
 esac
 
-# Ask MySQL root password
-rootpsw () {
-	ROOTPSW=$(dialog --stdout --title "MySQL Server" \
-		--backtitle "Installing $NAME" \
-		--passwordbox "Please enter MySQL root password!" 8 50)
-	ROOTPSW2=$(dialog --stdout --title "MySQL Server" \
-		--backtitle "Installing $NAME" \
-		--passwordbox "Please confirm MySQL root password!" 8 50)
-
-	if [[ $ROOTPSW != $ROOTPSW2 ]]; then
-		dialog --title "Error" \
-			--backtitle "Installing $NAME" \
-			--msgbox "\n Passwords do not match." 6 50
-		rootpsw
-	fi
-	if [[ ${ROOTPSW:-none} = "none" ]]; then
-		dialog --title "Error" \
-			--backtitle "Installing $NAME" \
-			--msgbox "\n No password given." 6 50
-		rootpsw
-	fi
-}
-
-# Ask MySQL Gitlab password
-gitlabpsw () {
-	GITLABPSW=$(dialog --stdout --title "MySQL Server" \
-		--backtitle "Installing $NAME" \
-		--passwordbox "Please enter MySQL gitlab user password!" 8 50)
-	GITLABPSW2=$(dialog --stdout --title "MySQL Server" \
-		--backtitle "Installing $NAME" \
-		--passwordbox "Please confirm MySQL gitlab user password!" 8 50)
-
-	if [[ $GITLABPSW != $GITLABPSW2 ]]; then
-		dialog --title "Error" \
-			--backtitle "Installing $NAME" \
-			--msgbox "\n Passwords do not match." 6 50
-		gitlabpsw
-	fi
-	if [[ ${GITLABPSW:-none} = "none" ]]; then
-		dialog --title "Error" \
-			--backtitle "Installing $NAME" \
-			--msgbox "\n No password given." 6 50
-		gitlabpsw
-	fi
-}
-
-# Ask Gitlab hostname
-gitlabhost () {
-	GITLABHOST=$(dialog --stdout --title "Gitlab Host" \
-		--backtitle "Installing $NAME" \
-		--inputbox "Please enter Gitlab hostname!" 8 50)
-
-	if [[ ${GITLABHOST:-none} == "none" ]]; then
-		dialog --title "Error" \
-			--backtitle "Installing $NAME" \
-			--msgbox "\n No hostname given." 6 50
-		gitlabhost
-	fi
-}
-
 # Run ask functions
 
 case "$DB" in
@@ -146,28 +168,28 @@ case "$DB" in
 		db="mysql-server mysql-client libmysqlclient-dev"
 		WITHOUT="postgres"
 		rootpsw
-		gitlabpsw
+		userpsw
 		echo mysql-server mysql-server/root_password password $ROOTPSW | sudo debconf-set-selections
 		echo mysql-server mysql-server/root_password_again password $ROOTPSW2 | sudo debconf-set-selections
 		;;
 esac
 
-gitlabhost
+host
 
 if [[ $WS == "nginx" ]]; then
-	gitlabip () {
-		GITLABIP=$(dialog --stdout --title "Gitlab IP" \
+	ip () {
+		IP=$(dialog --stdout --title "Gitlab IP" \
 			--backtitle "Installing $NAME" \
 			--inputbox "Please enter Gitlab server IP!" 8 50)
 
-		if [[ ${GITLABIP:-none} == "none" ]]; then
+		if [[ ${IP:-none} == "none" ]]; then
 			dialog --title "Error" \
 				--backtitle "Installing $NAME" \
 				--msgbox "\n No IP given." 6 50
-			gitlabip
+			ip
 		fi
 	}
-	gitlabip
+	ip
 fi
 
 # Install dependencies
@@ -212,7 +234,7 @@ git checkout v1.7.0
 
 # Setup gitlab-shell
 sudo -u git -H cp config.yml.example config.yml
-sudo sed -i -e 's/gitlab_url: "http://localhost/"/gitlab_url: "http://$GITLABHOST/"/' config/gitlab.yml
+sudo sed -i -e 's/gitlab_url: "http://localhost/"/gitlab_url: "http://$HOST/"/' config/gitlab.yml
 sudo -u git -H ./bin/install
 
 # We'll install GitLab into home directory of the user "git"
@@ -233,25 +255,25 @@ cd /home/git/gitlab
 sudo -u git -H cp config/gitlab.yml.example config/gitlab.yml
 
 # Setup Gitlab config
-sudo sed -i -e "s/host: localhost/host: $GITLABHOST/" config/gitlab.yml
-sudo sed -i -e "s/gitlab@localhost/ gitlab@$GITLABHOST/" config/gitlab.yml
-sudo sed -i -e "s/support@localhost/ gitlab@$GITLABHOST/" config/gitlab.yml
+sudo sed -i -e "s/host: localhost/host: $HOST/" config/gitlab.yml
+sudo sed -i -e "s/gitlab@localhost/ gitlab@$HOST/" config/gitlab.yml
+sudo sed -i -e "s/support@localhost/ gitlab@$HOST/" config/gitlab.yml
 
 # Setup database
 case "$DB" in
 	"postgresql")
 		sudo -u git cp config/database.yml.postgresql config/database.yml
-		sudo sed -i -e "s/password:/password: \"$GITLABPSW\"/" config/database.yml
+		sudo sed -i -e "s/password:/password: \"$USERPSW\"/" config/database.yml
 
-		sudo -u postgres psql -d template1 -c "CREATE USER git WITH PASSWORD '$GITLABPSW';"
+		sudo -u postgres psql -d template1 -c "CREATE USER git WITH PASSWORD '$USERPSW';"
 		sudo -u postgres psql -d template1 -c "CREATE DATABASE gitlabhq_production OWNER git;"
 		;;
 	*)
 		sudo -u git cp config/database.yml.mysql config/database.yml
 		sudo sed -i -e "s/root/ gitlab/" config/database.yml
-		sudo sed -i -e "s/\"secure password\"/\"$GITLABPSW\"/" config/database.yml
+		sudo sed -i -e "s/\"secure password\"/\"$USERPSW\"/" config/database.yml
 
-		mysql -u root -p$ROOTPSW -e "CREATE USER 'gitlab'@'localhost' IDENTIFIED BY '$GITLABPSW';"
+		mysql -u root -p$ROOTPSW -e "CREATE USER 'gitlab'@'localhost' IDENTIFIED BY '$USERPSW';"
 		mysql -u root -p$ROOTPSW -e 'CREATE DATABASE IF NOT EXISTS `gitlabhq_production` DEFAULT CHARACTER SET `utf8` COLLATE `utf8_unicode_ci`;'
 		mysql -u root -p$ROOTPSW -e 'GRANT SELECT, LOCK TABLES, INSERT, UPDATE, DELETE, CREATE, DROP, INDEX, ALTER ON `gitlabhq_production`.* TO "$NAME"@"localhost";'
 		;;
@@ -283,7 +305,7 @@ sudo -u git -H cp config/unicorn.rb.example config/unicorn.rb
 # Configure Git global settings for git user, useful when editing via web
 # Edit user.email according to what is set in gitlab.yml
 sudo -u git -H git config --global user.name "GitLab"
-sudo -u git -H git config --global user.email "$GITLABHOST"
+sudo -u git -H git config --global user.email "$HOST"
 sudo -u git -H git config --global core.autocrlf input
 
 # Install gems
@@ -310,15 +332,15 @@ case "$WS" in
 		sudo curl --output /etc/nginx/sites-available/gitlab https://raw.github.com/gitlabhq/gitlabhq/master/lib/support/nginx/gitlab
 		sudo ln -s /etc/nginx/sites-available/gitlab /etc/nginx/sites-enabled/gitlab
 
-		sudo sed -i -e "s/YOUR_SERVER_IP/ $GITLABIP/" /etc/nginx/sites-enabled/gitlab
-		sudo sed -i -e "s/YOUR_SERVER_FQDN/ $GITLABHOST/" /etc/nginx/sites-enabled/gitlab
+		sudo sed -i -e "s/YOUR_SERVER_IP/ $IP/" /etc/nginx/sites-enabled/gitlab
+		sudo sed -i -e "s/YOUR_SERVER_FQDN/ $HOST/" /etc/nginx/sites-enabled/gitlab
 		sudo service nginx restart
 		;;
 	*)
 		echo "
 		<VirtualHost *:80>
-			ServerName $GITLABHOST
-			ServerAdmin webmaster@$GITLABHOST
+			ServerName $HOST
+			ServerAdmin webmaster@$HOST
 
 			DocumentRoot /home/git/gitlab/public
 			ProxyPass /uploads !
