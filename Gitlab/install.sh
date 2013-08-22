@@ -3,6 +3,13 @@
 # Gitlab install script
 NAME="Gitlab 5.4"
 
+if [[ "$(id -u)" -ne 0 && "$(lsb_release -si)" -ne "Ubuntu" ]] ; then
+	echo -e "\e[1;31mThis script must be run as root!\e[0m"
+	exit
+elif [[ "$(lsb_release -si)" -ne "Ubuntu" ]] ; then
+	apt-get install sudo
+fi
+
 # Installing dialog
 sudo apt-get install -y --quiet dialog
 
@@ -164,7 +171,7 @@ if [[ $WS == "nginx" ]]; then
 fi
 
 # Install dependencies
-sudo apt-get install -y --quiet build-essential zlib1g-dev libyaml-dev libssl-dev libgdbm-dev libreadline-dev libncurses5-dev libffi-dev curl git-core openssh-server redis-server checkinstall libxml2-dev libxslt-dev libcurl4-openssl-dev libicu-dev python python2.7 $ws $db $ms
+sudo apt-get install -y --quiet build-essential zlib1g-dev libyaml-dev libssl-dev libgdbm-dev libreadline-dev libncurses5-dev libffi-dev curl git-core openssh-server redis-server checkinstall libxml2-dev libxslt-dev libcurl4-openssl-dev libicu-dev python python2.7 python-docutils $ws $db $ms
 
 # Check python2 available
 if [ ! -f /usr/bin/python2 ];
@@ -174,6 +181,10 @@ fi
 
 if [[ $RUBY == "on" ]]; then
 	# Install ruby
+	if [[ "$(which ruby1.8)" ]]; then
+		sudo apt-get remove -y ruby1.8
+	fi
+
 	rm -rf /tmp/ruby && mkdir /tmp/ruby && cd /tmp/ruby
 	curl --progress http://ftp.ruby-lang.org/pub/ruby/1.9/ruby-1.9.3-p392.tar.gz | tar xz
 	cd ruby-1.9.3-p392
