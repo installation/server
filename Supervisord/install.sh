@@ -47,7 +47,7 @@ fi
 cd /tmp
 
 e "Cleaning up"
-rm -rf supervisor* setuptools* /etc/init.d/supervisord /etc/supervisord.*
+rm -rf supervisor* setuptools*
 
 e "Downloading $NAME $VER and it's dependencies"
 wget --quiet https://pypi.python.org/packages/source/s/supervisor/supervisor-3.0.tar.gz > /dev/null
@@ -69,8 +69,12 @@ cd ..
 
 e "Setting up $NAME $VER"
 echo_supervisord_conf >> /etc/supervisord.conf
-mkdir /etc/supervisord.d
+mkdir -p /etc/supervisord.d
+mkdir -p /var/run/supervisord
 
+sed -i -e 's/file=\/tmp\/supervisor.sock/file=\/var\/run\/supervisord\/supervisord.sock/' /etc/supervisord.conf
+sed -i -e 's/pidfile=\/tmp\/supervisord.pid/pidfile=\/var\/run\/supervisord\/supervisord.pid/' /etc/supervisord.conf
+sed -i -e 's/logfile=\/tmp\/supervisord.log/logfile=\/var\/log\/supervisord.log/' /etc/supervisord.conf
 sed -i -e 's/;\[inet_http_server\]/\[inet_http_server\]/' /etc/supervisord.conf
 sed -i -e 's/;port=127.0.0.1:9001/port=*:9001/' /etc/supervisord.conf
 sed -i -e 's/;\[include\]/\[include\]/' /etc/supervisord.conf
