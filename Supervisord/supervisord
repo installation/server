@@ -16,7 +16,7 @@
 ### END INIT INFO
 
 
-PATH=/sbin:/usr/sbin:/bin:/usr/bin
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 NAME=supervisord
 DESC="Supervisor daemon"
 LOGDIR=/var/log/$NAME
