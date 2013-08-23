@@ -87,7 +87,7 @@ case "$1" in
 		if running ; then
 			echo "Success"
 		else
-			echo -e "\033[31mError\033[0m"
+			echo "\033[31mError\033[0m"
 		fi
 	;;
   stop)
@@ -101,7 +101,7 @@ case "$1" in
 		if ! running ; then
 			echo "Success"
 		else
-			echo -e "\033[31mError\033[0m"
+			echo "\033[31mError\033[0m"
 		fi
 	;;
   #reload)
