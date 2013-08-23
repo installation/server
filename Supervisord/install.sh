@@ -17,9 +17,9 @@ install () {
 	if [[ -z "$1" ]]; then
 		return 1
 	else
-		if [[ `which apt-get` > /dev/null ]]; then
+		if [[ `which apt-get 2> /dev/null` ]]; then
 			apt-get install $1 &> /dev/null || return 2
-		elif [[ `which yum` > /dev/null ]]; then
+		elif [[ `which yum 2> /dev/null` ]]; then
 			yum install $1 &> /dev/null || return 2
 		else
 			return 3
@@ -52,7 +52,7 @@ fi
 
 # Checking dependencies
 for dep in ${DEPENDENCIES[@]}; do
-	if [[ ! $(which $dep)  > /dev/null ]]; then
+	if [[ ! $(which $dep 2> /dev/null) ]]; then
 		e "Installing package: $dep"
 		install $dep
 		case $? in
