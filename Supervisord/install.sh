@@ -73,6 +73,7 @@ mkdir -p /etc/supervisord.d
 mkdir -p /var/run/supervisord
 
 sed -i -e 's/file=\/tmp\/supervisor.sock/file=\/var\/run\/supervisord\/supervisord.sock/' /etc/supervisord.conf
+sed -i -e 's/serverurl=unix:\/\/\/tmp\/supervisor.sock/serverurl=unix:\/\/\/var\/run\/supervisord\/supervisord.sock/' /etc/supervisord.conf
 sed -i -e 's/pidfile=\/tmp\/supervisord.pid/pidfile=\/var\/run\/supervisord\/supervisord.pid/' /etc/supervisord.conf
 sed -i -e 's/logfile=\/tmp\/supervisord.log/logfile=\/var\/log\/supervisord.log/' /etc/supervisord.conf
 sed -i -e 's/;\[inet_http_server\]/\[inet_http_server\]/' /etc/supervisord.conf
