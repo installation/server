@@ -18,9 +18,9 @@ install () {
 		return 1
 	else
 		if [[ `which apt-get 2> /dev/null` ]]; then
-			apt-get install $1 &> /dev/null || return 2
+			apt-get install -y -qq $1 &> /dev/null || return 2
 		elif [[ `which yum 2> /dev/null` ]]; then
-			yum install $1 &> /dev/null || return 2
+			yum install -y -q $1 &> /dev/null || return 2
 		else
 			return 3
 		fi
@@ -42,7 +42,7 @@ progress () {
 DIR=$(cd `dirname $0` && pwd)
 NAME="Supervisord"
 VER="3.0"
-DEPENDENCIES=("python" "dialog")
+DEPENDENCIES=("python" "dialog" "wget")
 
 # Checking root access
 if [[ $EUID -ne 0 ]]; then
@@ -110,8 +110,8 @@ progress 15 "Cleaning up"
 rm -rf supervisor* setuptools*
 
 progress 30 "Downloading files"
-wget --quiet https://pypi.python.org/packages/source/s/supervisor/supervisor-3.0.tar.gz > /dev/null
-wget --quiet https://pypi.python.org/packages/source/s/setuptools/setuptools-1.0.tar.gz > /dev/null
+wget --quiet --no-check-certificate https://pypi.python.org/packages/source/s/supervisor/supervisor-3.0.tar.gz > /dev/null
+wget --quiet --no-check-certificate https://pypi.python.org/packages/source/s/setuptools/setuptools-1.0.tar.gz > /dev/null
 
 progress 45 "Extracting files"
 tar -xvzf supervisor-3.0.tar.gz > /dev/null
@@ -163,7 +163,10 @@ clear
 #curl https://raw.github.com/gist/176149/88d0d68c4af22a7474ad1d011659ea2d27e35b8d/supervisord.sh > /etc/init.d/supervisord
 cp $DIR/supervisord /etc/init.d/supervisord
 chmod +x /etc/init.d/supervisord
-update-rc.d supervisord defaults
+
+if [[ `update-rc.d 2> /dev/null` ]]; then
+	update-rc.d supervisord defaults
+fi
 
 service supervisord stop
 service supervisord start
