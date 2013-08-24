@@ -19,21 +19,25 @@
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 NAME=supervisord
 DESC="Supervisor daemon"
-LOGDIR=/var/log/$NAME
 PIDFILE=/var/run/$NAME/$NAME.pid
 DODTIME=5
 DAEMON=/usr/bin/$NAME
 DAEMON_OPTS="-c /etc/$NAME.conf"
+SUPERVISORCTL=/usr/bin/supervisorctl
 
-test -x $DAEMON || exit 0
+test -x $DAEMON || exit 1
+test -x $SUPERVISORCTL || exit 1
 
+if [ $(id -u) -ne 0 ]; then
+	echo "This script must be run as root"
+	exit 1
+fi
 
 # Include supervisor defaults if available
 if [ -f /etc/default/supervisor ] ; then
 	. /etc/default/supervisor
 fi
 
-#set -e
 
 running_pid()
 {
@@ -59,94 +63,135 @@ running()
 	return 0
 }
 
-force_stop() {
-# Forcefully kill the process
-	[ ! -f "$PIDFILE" ] && return
-	if running ; then
-		kill -15 $pid
-		# Is it really dead?
+status()
+{
+	case "$1" in
+		0 )
+			echo "Success"
+			;;
+		1 )
+			echo "\033[31mError\033[0m"
+			;;
+		2 )
+			echo "Error! $DESC is currently running!"
+			;;
+		3 )
+			echo "Error! $DESC is currently not running!"
+			;;
+		4 )
+			echo "Cannot kill $DESC (pid=$pid)!"
+			;;
+	esac
+}
+
+do_start()
+{
+	if running; then
+		return 2
+	else
+		echo -n "Starting $DESC: "
+		$DAEMON --pidfile $PIDFILE $DAEMON_OPTS > /dev/null
+		test -f $PIDFILE || sleep 1
+		return $(running)
+	fi
+}
+
+do_stop()
+{
+	if running; then
+		echo -n "Stopping $DESC: "
+		$SUPERVISORCTL $DAEMON_OPTS shutdown > /dev/null
+		test -f $PIDFILE || sleep 1
+		if running; then
+			return 1
+		else
+			return 0
+		fi
+	else
+		return 3
+	fi
+}
+
+do_force_stop()
+{
+	if running; then
+		echo -n "Forcefully stopping $DESC: "
+		$SUPERVISORCTL $DAEMON_OPTS shutdown > /dev/null
 		[ -n "$DODTIME" ] && sleep "$DODTIME"s
-		if running ; then
+		if running; then
 			kill -9 $pid
 			[ -n "$DODTIME" ] && sleep "$DODTIME"s
-			if running ; then
-				echo "Cannot kill $DESC (pid=$pid)!"
-				exit 1
+			if running; then
+				return 4
+			else
+				rm -f $PIDFILE
+				return 0
 			fi
+		else
+			rm -f $PIDFILE
+			return 0
 		fi
+	else
+		return 3
 	fi
-	rm -f $PIDFILE
-	return 0
+}
+
+do_reload()
+{
+	if running; then
+		echo -n "Reloading $DESC: "
+		$SUPERVISORCTL $DAEMON_OPTS update > /dev/null
+		return $(running)
+	else
+		return 3
+	fi
+}
+
+do_restart()
+{
+	if running; then
+		echo -n "Restarting $DESC: "
+		$SUPERVISORCTL $DAEMON_OPTS reload > /dev/null
+		test -f $PIDFILE || sleep 1
+		return $(running)
+	else
+		return 3
+	fi
 }
 
 case "$1" in
-  start)
-	echo -n "Starting $DESC: "
-	start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON -- $DAEMON_OPTS
-	test -f $PIDFILE || sleep 1
-		if running ; then
-			echo "Success"
+	start )
+		do_start
+		status $?
+		;;
+	stop )
+		do_stop
+		status $?
+		;;
+	force-stop )
+		do_force_stop
+		status $?
+		;;
+	reload )
+		do_reload
+		status $?
+		;;
+	restart )
+		do_restart
+		status $?
+		;;
+	status )
+		echo -n "$DESC is "
+		if running; then
+			echo "running"
 		else
-			echo "\033[31mError\033[0m"
+			echo "not running"
 		fi
-	;;
-  stop)
-	echo -n "Stopping $DESC: "
-	start-stop-daemon --stop --quiet --oknodo --pidfile $PIDFILE
-	echo "Success"
-	;;
-  force-stop)
-	echo -n "Forcefully stopping $DESC: "
-		force_stop
-		if ! running ; then
-			echo "Success"
-		else
-			echo "\033[31mError\033[0m"
-		fi
-	;;
-  #reload)
-	#
-	#	If the daemon can reload its config files on the fly
-	#	for example by sending it SIGHUP, do it here.
-	#
-	#	If the daemon responds to changes in its config file
-	#	directly anyway, make this a do-nothing entry.
-	#
-	# echo "Reloading $DESC configuration files."
-	# start-stop-daemon --stop --signal 1 --quiet --pidfile \
-	#	/var/run/$NAME.pid --exec $DAEMON
-  #;;
-  force-reload)
-	#
-	#	If the "reload" option is implemented, move the "force-reload"
-	#	option to the "reload" entry above. If not, "force-reload" is
-	#	just the same as "restart" except that it does nothing if the
-	#   daemon isn't already running.
-	# check wether $DAEMON is running. If so, restart
-	start-stop-daemon --stop --test --quiet --pidfile $PIDFILE --exec $DAEMON && $0 restart || exit 0
-	;;
-  restart)
-	echo -n "Restarting $DESC: "
-	start-stop-daemon --stop --quiet --pidfile $PIDFILE --exec $DAEMON
-	[ -n "$DODTIME" ] && sleep $DODTIME
-	start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON -- $DAEMON_OPTS
-	echo "$NAME."
-	;;
-  status)
-	echo -n "$DESC is "
-	if running ;  then
-		echo "running"
-	else
-		echo " not running."
+		;;
+	*)
+		echo "Usage: service $NAME {start|stop|restart|reload|status|force-stop}" >&2
 		exit 1
-	fi
-	;;
-  *)
-	#N=/etc/init.d/$NAME
-	# echo "Usage: $N {start|stop|restart|reload|force-reload}" >&2
-	echo "Usage: service $NAME {start|stop|restart|force-reload|status|force-stop}" >&2
-	exit 1
-	;;
+		;;
 esac
 
 exit 0

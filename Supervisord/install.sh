@@ -9,17 +9,20 @@
 # Function definitions
 
 ## Echo colored text
-e () {
+e()
+{
 	color="\033[${2:-34}m"
 	echo -e "$color$1\033[0m"
 }
-install () {
-	if [[ -z "$1" ]]; then
+
+install()
+{
+	if [ -z "$1" ]; then
 		return 1
 	else
-		if [[ `which apt-get 2> /dev/null` ]]; then
+		if [ `which apt-get 2> /dev/null` ]; then
 			apt-get install -y -qq $1 &> /dev/null || return 2
-		elif [[ `which yum 2> /dev/null` ]]; then
+		elif [ `which yum 2> /dev/null` ]; then
 			yum install -y -q $1 &> /dev/null || return 2
 		else
 			return 3
@@ -28,7 +31,8 @@ install () {
 	fi
 }
 
-progress () {
+progress()
+{
 	progress=${1:-0}
 	gauge="${2:-Please wait}"
 	title="${3:-Installation progress}"
@@ -45,16 +49,16 @@ VER="3.0"
 DEPENDENCIES=("python" "dialog" "wget")
 
 # Checking root access
-if [[ $EUID -ne 0 ]]; then
+if [ $EUID -ne 0 ]; then
 	e "This script has to be ran as root!" 31
 	exit 1
 fi
 
 # Checking dependencies
 for dep in ${DEPENDENCIES[@]}; do
-	if [[ ! $(which $dep 2> /dev/null) ]]; then
+	if [ ! $(which $dep 2> /dev/null) ]; then
 		e "Installing package: $dep"
-		install $dep
+		install "$dep"
 		case $? in
 			0 )
 				e "Package installed: $dep"
@@ -79,7 +83,7 @@ for dep in ${DEPENDENCIES[@]}; do
 	fi
 done
 
-if [[ -f /usr/local/bin/supervisord ]]; then
+if [ -f /usr/local/bin/supervisord ]; then
 	warning=$(dialog --stdout --backtitle "Installing $NAME $VER" \
 	--title "WARNING" \
 	--radiolist "Warning: $NAME is already installed. Do you want to continue?" 11 40 2 \
@@ -151,9 +155,9 @@ esac
 
 mkdir -p /etc/supervisord.d /var/run/supervisord
 
-[[ -f /usr/bin/supervisord ]] || ln -s /usr/local/bin/supervisord /usr/bin/supervisord
-[[ -f /usr/bin/supervisorctl ]] || ln -s /usr/local/bin/supervisorctl /usr/bin/supervisorctl
-[[ -f /usr/bin/pidproxy ]] || ln -s /usr/local/bin/pidproxy /usr/bin/pidproxy
+[ -f /usr/bin/supervisord ] || ln -s /usr/local/bin/supervisord /usr/bin/supervisord
+[ -f /usr/bin/supervisorctl ] || ln -s /usr/local/bin/supervisorctl /usr/bin/supervisorctl
+[ -f /usr/bin/pidproxy ] || ln -s /usr/local/bin/pidproxy /usr/bin/pidproxy
 
 progress 95 "Deleting setup files"
 rm -rf setuptools* supervisor*
@@ -164,8 +168,13 @@ clear
 cp $DIR/supervisord /etc/init.d/supervisord
 chmod +x /etc/init.d/supervisord
 
-if [[ `update-rc.d 2> /dev/null` ]]; then
-	update-rc.d supervisord defaults
+if [ `which update-rc.d 2> /dev/null` ]; then
+	update-rc.d supervisord defaults &> /dev/null || e "Error installing init script" 31
+elif [ `chkconfig 2> /dev/null` ]; then
+	chkconfig --add supervisord &> /dev/null || e "Error installing init script" 31
+else
+	e "InitV not found" 31
+	exit 1
 fi
 
 service supervisord stop
