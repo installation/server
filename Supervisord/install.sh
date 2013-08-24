@@ -169,11 +169,11 @@ cp $DIR/supervisord /etc/init.d/supervisord
 chmod +x /etc/init.d/supervisord
 
 if [ `which update-rc.d 2> /dev/null` ]; then
-	update-rc.d supervisord defaults &> /dev/null || e "Error installing init script" 31
-elif [ `chkconfig 2> /dev/null` ]; then
-	chkconfig --add supervisord &> /dev/null || e "Error installing init script" 31
+	update-rc.d supervisord defaults &> /dev/null || e "Error installing init script!" 31
+elif [ `which chkconfig 2> /dev/null` ]; then
+	chkconfig --add supervisord &> /dev/null || e "Error installing init script!" 31
 else
-	e "InitV not found" 31
+	e "InitV not found, service not started!" 31
 	exit 1
 fi
 
