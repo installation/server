@@ -1,9 +1,9 @@
 [submodule "tools/speedtest-cli"]
 	path = tools/speedtest-cli
-	url = git://github.com/sivel/speedtest-cli.git
+	url = https://github.com/sivel/speedtest-cli.git
 [submodule "tools/imapsync"]
 	path = tools/imapsync
-	url = git://github.com/imapsync/imapsync.git
+	url = https://github.com/imapsync/imapsync.git
 [submodule "tools/sshuttle"]
 	path = tools/sshuttle
 	url = https://github.com/apenwarr/sshuttle.git
