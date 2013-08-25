@@ -1,9 +1,18 @@
-#! /bin/sh
+#!/bin/sh
 
 # SUPERVISORD
 # Maintainer: @sagikazarmark
 # App Version: 3.0
-
+#
+#
+# chkconfig: 2345 85 15
+#
+# description: Start/stop supervisor daemon and its configured subprocesses.
+# processname: supervisord
+# config: /etc/supervisord.conf
+# pidfile: /var/run/supervisord.pid
+#
+#
 ### BEGIN INIT INFO
 # Provides:          supervisord
 # Required-Start:    $local_fs $remote_fs $network $named
@@ -15,11 +24,22 @@
 #                    subprocesses.
 ### END INIT INFO
 
+if [ -f /etc/redhat-release ]; then
+	. /etc/rc.d/init.d/functions
+elif [ -f /etc/debian-release ]; then
+	# Load the VERBOSE setting and other rcS variables
+	. /lib/init/vars.sh
+
+	# Define LSB log_* functions.
+	# Depend on lsb-base (>= 3.0-6) to ensure that this file is present
+	. /lib/lsb/init-functions
+fi
+
 
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 NAME=supervisord
 DESC="Supervisor daemon"
-PIDFILE=/var/run/$NAME/$NAME.pid
+PIDFILE=/var/run/$NAME.pid
 DODTIME=5
 DAEMON=/usr/bin/$NAME
 DAEMON_OPTS="-c /etc/$NAME.conf"

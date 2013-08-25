@@ -15,6 +15,7 @@ e()
 	echo -e "$color$1\033[0m"
 }
 
+## Install required packages
 install()
 {
 	if [ -z "$1" ]; then
@@ -31,6 +32,7 @@ install()
 	fi
 }
 
+## Show progressbar
 progress()
 {
 	progress=${1:-0}
@@ -134,15 +136,7 @@ cd ..
 progress 90 "Setting up $NAME $VER"
 case $config in
 	2 )
-		echo_supervisord_conf >> /etc/supervisord.conf
-		sed -i -e 's/file=\/tmp\/supervisor.sock/file=\/var\/run\/supervisord\/supervisord.sock/' /etc/supervisord.conf
-		sed -i -e 's/serverurl=unix:\/\/\/tmp\/supervisor.sock/serverurl=unix:\/\/\/var\/run\/supervisord\/supervisord.sock/' /etc/supervisord.conf
-		sed -i -e 's/pidfile=\/tmp\/supervisord.pid/pidfile=\/var\/run\/supervisord\/supervisord.pid/' /etc/supervisord.conf
-		sed -i -e 's/logfile=\/tmp\/supervisord.log/logfile=\/var\/log\/supervisord.log/' /etc/supervisord.conf
-		sed -i -e 's/;\[inet_http_server\]/\[inet_http_server\]/' /etc/supervisord.conf
-		sed -i -e 's/;port=127.0.0.1:9001/port=*:9001/' /etc/supervisord.conf
-		sed -i -e 's/;\[include\]/\[include\]/' /etc/supervisord.conf
-		sed -i -e 's/;files = relative\/directory\/\*.ini/files = supervisord.d\/\*/' /etc/supervisord.conf
+		cp $DIR/config/supervisord.conf /etc/
 		;;
 	3 )
 		echo_supervisord_conf >> /etc/supervisord.conf
@@ -153,7 +147,7 @@ case $config in
 		;;
 esac
 
-mkdir -p /etc/supervisord.d /var/run/supervisord
+mkdir -p /etc/supervisord.d
 
 [ -f /usr/bin/supervisord ] || ln -s /usr/local/bin/supervisord /usr/bin/supervisord
 [ -f /usr/bin/supervisorctl ] || ln -s /usr/local/bin/supervisorctl /usr/bin/supervisorctl
