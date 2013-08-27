@@ -1,8 +1,9 @@
-# Server install scripts
-* Webmin
-* PHPMyAdmin
-* Ruby
-* Gitlab
-* Redmine
+Server install scripts
+======================
 
-(more to come)
+A set of install script which helps every sysadmin
+
+Scripts so far:
+
+* Webmin
+* Supervisor
