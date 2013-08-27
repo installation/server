@@ -13,3 +13,6 @@
 [submodule "webmin"]
 	path = webmin
 	url = git://github.com/sagikazarmark/webmin.git
+[submodule "redmine"]
+	path = redmine
+	url = git://github.com/sagikazarmark/redmine.git
