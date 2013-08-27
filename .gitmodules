@@ -9,10 +9,10 @@
 	url = git://github.com/apenwarr/sshuttle.git
 [submodule "supervisor"]
 	path = supervisor
-	url = git://github.com/sagikazarmark/supervisor.git
+	url = git://github.com/installation/supervisor.git
 [submodule "webmin"]
 	path = webmin
-	url = git://github.com/sagikazarmark/webmin.git
+	url = git://github.com/installation/webmin.git
 [submodule "redmine"]
 	path = redmine
-	url = git://github.com/sagikazarmark/redmine.git
+	url = git://github.com/installation/redmine.git
