@@ -1,4 +1,0 @@
-[program:mysql]
-command=/usr/local/bin/pidproxy /var/run/mysqld/mysqld.pid /usr/sbin/mysqld
-autostart=true
-autorestart=true

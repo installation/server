@@ -7,3 +7,9 @@
 [submodule "tools/sshuttle"]
 	path = tools/sshuttle
 	url = https://github.com/apenwarr/sshuttle.git
+[submodule "supervisor"]
+	path = supervisor
+	url = https://github.com/sagikazarmark/supervisor.git
+[submodule "webmin"]
+	path = webmin
+	url = https://github.com/sagikazarmark/webmin.git

@@ -1,1 +1,0 @@
-service[memcached]=x,x,x,/etc/init.d/memcached stop;/etc/init.d/memcached start,memcached,nobody
