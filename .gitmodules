@@ -1,15 +1,15 @@
 [submodule "tools/speedtest-cli"]
 	path = tools/speedtest-cli
-	url = https://github.com/sivel/speedtest-cli.git
+	url = git@github.com/sivel/speedtest-cli.git
 [submodule "tools/imapsync"]
 	path = tools/imapsync
-	url = https://github.com/imapsync/imapsync.git
+	url = git@github.com/imapsync/imapsync.git
 [submodule "tools/sshuttle"]
 	path = tools/sshuttle
-	url = https://github.com/apenwarr/sshuttle.git
+	url = git@github.com/apenwarr/sshuttle.git
 [submodule "supervisor"]
 	path = supervisor
-	url = https://github.com/sagikazarmark/supervisor.git
+	url = git@github.com/sagikazarmark/supervisor.git
 [submodule "webmin"]
 	path = webmin
-	url = https://github.com/sagikazarmark/webmin.git
+	url = git@github.com/sagikazarmark/webmin.git
