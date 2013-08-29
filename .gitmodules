@@ -16,3 +16,6 @@
 [submodule "redmine"]
 	path = redmine
 	url = git://github.com/installation/redmine.git
+[submodule "security"]
+	path = security
+	url = git://github.com/installation/security.git
